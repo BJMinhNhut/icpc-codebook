@@ -1,46 +1,86 @@
-const int MN  = 111;
-const int mod = 10000;
+#include <bits/stdc++.h>
 
-struct matrix {
-  int r, c;
-  int m[MN][MN];
+using namespace std;
 
-  matrix (int _r, int _c) : r (_r), c (_c) {
-    memset(m, 0, sizeof m);
-  }
+const int N  = 1030;
+const int mod = 998244353;
 
-  void print() {
-    for (int i = 0; i < r; ++i) {
-      for (int j = 0; j < c; ++j)
-        cout << m[i][j] << " ";
-      cout << endl;
+struct Matrix {
+    int numRow, numCol;
+    vector <vector <int>> val;
+
+    Matrix (int numRow, int numCol): numRow(numRow), numCol(numCol) {
+        val.resize(numRow);
+        for (int i = 0; i < numRow; ++i) {
+            val[i].resize(numCol, 0);
+        }
     }
-  }
 
-  int x[MN][MN];
-  matrix & operator *= (const matrix &o) {
-    memset(x, 0, sizeof x);
-    for (int i = 0; i < r; ++i)
-      for (int k = 0; k < c; ++k)
-        if (m[i][k] != 0)
-          for (int j = 0; j < c; ++j) {
-            x[i][j] = (x[i][j] +  ((m[i][k] * o.m[k][j]) % mod) ) % mod;
-          }
-    memcpy(m, x, sizeof(m));
-    return *this;
-  }
+    void print() {
+        for (int i = 0; i < numRow; ++i) {
+            for (int j = 0; j < numCol; ++j) {
+                cout << val[i][j] << " ";
+            }
+            cout << "\n";
+        }
+    }
+
+    Matrix operator * (const Matrix &other) const {
+        assert(numCol == other.numRow);
+        Matrix res(numRow, other.numCol);
+        for (int i = 0; i < numRow; ++i) {
+            for (int j = 0; j < other.numCol; ++j) {
+                for (int k = 0; k < numCol; ++k) {
+                    res.val[i][j] = (res.val[i][j] + 1LL * val[i][k] * other.val[k][j]) % mod;
+                }
+            }
+        }
+        return res;
+    }
+
+    Matrix & operator *= (const Matrix &o) {
+        *this = *this * o;
+        return *this;
+    }
+
+    Matrix matrix_pow(long long e) {
+        Matrix res(numRow, numCol);
+        Matrix tmp = *this;
+        for (int i = 0; i < numRow; ++i) {
+            res.val[i][i] = 1;
+        }
+        if (e == 0) return res;
+        while (true) {
+            if (e & 1) res *= tmp;
+            if ((e >>= 1) == 0) break;
+            tmp *= tmp;
+        }
+        return res;
+    }
 };
 
-void matrix_pow(matrix b, long long e, matrix &res) {
-  memset(res.m, 0, sizeof res.m);
-  for (int i = 0; i < b.r; ++i)
-    res.m[i][i] = 1;
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
 
-  if (e == 0) return;
-  while (true) {
-    if (e & 1) res *= b;
-    if ((e >>= 1) == 0) break;
-    b *= b;
-  }
+    int n, m, k;
+    cin >> n >> m >> k;
+    Matrix a(n, m), b(m, k);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++ j) {
+            cin >> a.val[i][j];
+        }
+    }
+
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < k; ++ j) {
+            cin >> b.val[i][j];
+        }
+    }
+
+    Matrix c = a * b;
+
+    c.print();
+    return 0;
 }
-
