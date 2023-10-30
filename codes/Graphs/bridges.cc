@@ -49,11 +49,11 @@ for(int  i = 1 ; i <= n ;i++)
 {
     ans += IsCut[i];
 }
-cout << ans << ' ';
+cout << ans << ' '; // Khớp
 ans = 0;
 for(int i = 0 ; i <= (int)edge.size()-1 ; i++)
 {
     ans += edge[i].is_bridge;
 }
 
-cout << ans;
+cout << ans; // Cầu

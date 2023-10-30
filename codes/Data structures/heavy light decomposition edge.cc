@@ -1,71 +1,95 @@
-// Heavy-Light Decomposition
-struct TreeDecomposition {
-	vector<int> g[MAXN], c[MAXN];
-	int s[MAXN];  // subtree size
-	int p[MAXN];  // parent id
-	int r[MAXN];  // chain root id
-	int t[MAXN];  // index used in segtree/bit/...
-	int d[MAXN];  // depht
-	int ts;
+int n , sub_size[N] , up[N][LOG] , depth[N] , Num[N] ,chain[N] , chainHead[N] , chainId ,  cnt = 0 , ar[N];
+vector<pair<int,int >>vertices[N];
+int U[N],V[N];
 
-	void dfs(int v, int f) {
-		p[v] = f;
-		s[v] = 1;
-		if (f != -1)
-			d[v] = d[f] + 1;
-		else
-			d[v] = 0;
+void DFS(int u ,int daddy)
+{
+    sub_size[u] = 1;
+    foreach(pair<int ,int > adj in vertices[u])
+    {
+        int v = adj.first;
+        if(v == daddy)
+        {
+            continue;
+        }
+        up[v][0] = u;
+        depth[v] = depth[u] + 1;
+        for(int j = 1 ; j < LOG ; j++)
+        {
+            up[v][j] = up[up[v][j-1]][j-1];
+        }
+        DFS(v , u );
+        
+        sub_size[u] += sub_size[v];
+    }
+}
 
-		for (int i = 0; i < g[v].size(); ++i) {
-			int w = g[v][i];
-			if (w != f) {
-				dfs(w, v);
-				s[v] += s[w];
-			}
-		}
-	}
+int LCA(int a , int b)
+{
+    if(depth[a] < depth[b])
+    {
+        swap(a , b);
+    }
+    int k = depth[a] - depth[b];
+    for(int j = LOG - 1 ; j >= 0 ; j--)
+    {
+        if(k& (1 << j))
+        {
+            a = up[a][j];
+        }
+    }
+    if(a == b)
+    {
+        return a;
+    }
+    for(int j = LOG - 1;  j>= 0 ; j--)
+    {
+        if(up[a][j] != up[b][j])
+        {
+            a = up[a][j];
+            b = up[b][j];
+        }
+    }
+    return up[a][0];
+}
 
-	void hld(int v, int f, int k) {
-		t[v] = ts++;
-		c[k].push_back(v);
-		r[v] = k;
-
-		int x = 0, y = -1;
-		for (int i = 0; i < g[v].size(); ++i) {
-			int w = g[v][i];
-			if (w != f) {
-				if (s[w] > x) {
-					x = s[w];
-					y = w;
-				}
-			}
-		}
-		if (y != -1) {
-			hld(y, v, k);
-		}
-
-		for (int i = 0; i < g[v].size(); ++i) {
-			int w = g[v][i];
-			if (w != f && w != y) {
-				hld(w, v, w);
-			}
-		}
-	}
-
-	void init(int n) {
-		for (int i = 0; i < n; ++i) {
-			g[i].clear();
-		}
-	}
-
-	void add(int a, int b) {
-		g[a].push_back(b);
-		g[b].push_back(a);
-	}
-
-	void build() {
-		ts = 0;
-		dfs(0, -1);
-		hld(0, 0, 0);
-	}
-};
+void Build_HLD(int u ,int daddy)
+{
+    Num[u] = cnt++;
+    chain[u] = chainId;
+    int BigChild = -1;
+    int BigSize  = -1;
+    int BigEdge = -1;
+    foreach(pair<int ,int > adj in vertices[u])
+    {
+        int v = adj.first;
+        if(v == daddy)
+        {
+            continue;
+        }
+        int w = adj.second;
+        if(sub_size[v] > BigSize)
+        {
+            BigChild = v;
+            BigSize = sub_size[v];
+            BigEdge = w;
+        }
+    }
+    if(BigChild != -1)
+    {
+        ar[cnt] = BigEdge;
+        Build_HLD(BigChild, u );
+    }
+    for(pair<int ,int >adj in vertices[u])
+    {
+        int v = adj.first , w  = adj.second;
+        if(v == daddy || v == BigChild)
+        {
+            continue;
+        }
+        chainId++;
+        chainHead[chainId] = v;
+        ar[cnt] = w;
+        Build_HLD(v , u);
+    }
+}
